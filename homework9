@@ -1,0 +1,88 @@
+contacts = {}
+
+def input_error(func):
+    def inner(*args):
+        try:
+            return func(*args)
+        except IndexError:
+            return "Not enough params"
+    return inner
+
+def hello(*args):
+    return "How can I help you?"
+
+@input_error
+def add(*args):
+    global contacts
+    list_of_param = args[0].split()
+    name = list_of_param[0]
+    phone = list_of_param[1:]
+    if not phone:
+        raise IndexError()
+    contacts.update({name:phone})
+    return f"Added {name.title()}, phone:{phone}"
+
+def exit(*args):
+    return "Good bye!"
+
+def no_command(*args):
+    return "Write a person and phone"
+
+def show_all(*args):
+    return contacts
+
+@input_error
+def change(*args):
+    global contacts
+    list_of_param = args[0].split()
+    name = list_of_param[0]
+    phone = list_of_param[1:]
+    if not phone:
+        raise IndexError()
+    if name in contacts:
+        contacts[name] = phone
+        return f"Changed {name.title()}'s phone number to {phone}"
+    else:
+        return f"No contact found for {name.title()}"
+
+
+def phone(phone_num):
+    global contacts
+    for name, numbers in contacts.items():
+        if phone_num in numbers:
+            return f"{name}: {numbers[numbers.index(phone_num)]}"
+    return "No contact found"
+
+COMMANDS = {hello: "hello",
+            add: "add",
+            change: "change",
+            exit: "exit",
+            show_all: "show_all",
+            phone: "phone"}
+
+def command_handler(text):
+    text = text.lower()
+    if text in ['goodbye', 'close', 'exit']:
+        return exit, None
+    for command, k_word in COMMANDS.items():
+        if text.startswith(k_word):
+            data = text.replace(k_word, '').strip()
+            if command == phone:
+                return command, data.title()
+            else:
+                return command, data
+    return no_command, None
+
+
+
+def main():
+    print(hello())
+    while True:
+        input_var = input(">>>")
+        command, data = command_handler(input_var)
+        print(command(data))
+        if command == exit:
+            break
+
+if __name__ == "__main__":
+    main()
